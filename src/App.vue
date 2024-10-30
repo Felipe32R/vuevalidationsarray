@@ -49,8 +49,8 @@ type Contact = {
 };
 
 const contact = z.object({
-  name: z.string().min(3),
-  email: z.string().email(),
+  name: z.string({ coerce: true }).min(3),
+  email: z.string({ coerce: true }).email(),
 });
 
 const validationSchema = toTypedSchema(
@@ -67,7 +67,7 @@ const { value: contactsValue, errors: contactsErrors } =
   useField<Contact[]>("contacts");
 
 async function handleSubmit() {
-  console.log("errors", errors);
+  console.log("errors", errors.value);
   console.log("contactsErrors", contactsErrors);
   await validate();
 }
