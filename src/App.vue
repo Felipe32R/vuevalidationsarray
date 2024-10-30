@@ -1,22 +1,22 @@
 <template>
   <div class="flex flex-col h-full p-20 gap-4 px-[400px]">
-    <button @click="addContact" class="bg-gray-300">add contact</button>
-    <div v-for="(contact, index) in contactsValue">
+    <button @click="addContact()" class="bg-gray-300">add contact</button>
+    <div v-for="(contact, index) in fields" :key="index">
       <TextInput
-        :errors="contactsErrors"
         :label="'Name'"
         :required="true"
-        v-model:model-value="contact.name"
+        v-model:model-value="contact.value.name"
         class="w-full"
         :max-length="50"
+        :errors="getError(index, 'name')"
       />
       <TextInput
-        :errors="contactsErrors"
         :label="'E-mail'"
         :required="true"
-        v-model:model-value="contact.email"
+        v-model:model-value="contact.value.email"
         class="w-full"
         :max-length="50"
+        :errors="getError(index, 'email')"
       />
       <button @click="removeContact(index)" class="bg-gray-300">
         remove contact
@@ -28,19 +28,19 @@
 
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod";
-import { useField, useForm } from "vee-validate";
+import { useFieldArray, useForm } from "vee-validate";
 import { z } from "zod";
 import TextInput from "./components/TextInput.vue";
 
 const addContact = () => {
-  contactsValue.value.push({
+  push({
     name: "",
     email: "",
   });
 };
 
 const removeContact = (index: number) => {
-  contactsValue.value.splice(index, 1);
+  remove(index);
 };
 
 type Contact = {
@@ -59,16 +59,26 @@ const validationSchema = toTypedSchema(
   })
 );
 
+function getError(index: number, field: string) {
+  const errorKey = `contacts[${index}].${field}`;
+  if (errors.value[errorKey]) {
+    return [errors.value[errorKey]];
+  }
+}
+
 const { values, errors, validate } = useForm({
   validationSchema,
 });
 
-const { value: contactsValue, errors: contactsErrors } =
-  useField<Contact[]>("contacts");
+const { fields, push, insert, remove } = useFieldArray<Contact>("contacts");
 
 async function handleSubmit() {
   console.log("errors", errors.value);
-  console.log("contactsErrors", contactsErrors);
-  await validate();
+  console.log("values", values.contacts);
+  console.log("fields", fields.value);
+
+  const { valid } = await validate();
+
+  console.log("valid", valid);
 }
 </script>
